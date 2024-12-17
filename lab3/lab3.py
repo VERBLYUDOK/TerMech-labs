@@ -5,15 +5,15 @@ from scipy.integrate import odeint
 
 # --- Параметры системы ---
 R = 2.0    # Радиус колеса (м)
-c = 200.0   # Жесткость пружины (Н/м)
-m = 2.0    # Масса шарика (кг)
+c = 1.0    # Жесткость пружины (Н/м)
+m = 50.0    # Масса шарика (кг)
 M = 5.0    # Масса колеса
 g = 9.81   # Ускорение свободного падения (м/с^2)
-v = 1.0    # Линейная скорость центра колеса (м/с)
-phi0 = 0.2   # Начальное отклонение угла фи (рад)
-psi0 = 0.0         # Начальный угол пси (рад)
-phi_dot0 = 0.0      # Начальная угловая скорость фи (рад/с)
-psi_dot0 = 0.0      # Начальная угловая скорость пси (рад/с)
+phi0 = np.pi / 2     # Начальное отклонение угла фи (рад)
+psi0 = np.pi   # Начальный угол пси (рад)
+phi_dot0 = 0.0  # Начальная угловая скорость фи (рад/с)
+psi_dot0 = 0.0  # Начальная угловая скорость пси (рад/с)
+X0 = 0.0
 ball_radius = 0.2   # Радиус шарика (м)
 
 # Параметры времени
@@ -32,7 +32,6 @@ def odesys(y, t, M, m, c, g, R):
 
     alpha = (phi + psi)/2.0
 
-    # Матрица системы:
     # A * [ddphi; ddpsi] = B
     A11 = 1.0
     A12 = np.cos(phi)
@@ -44,7 +43,6 @@ def odesys(y, t, M, m, c, g, R):
     # B1 и B2 из уравнений Лагранжа:
     # phi'' + psi'' cos phi = -[2c/m(1−cos alpha) sin alpha + (g/R) sin phi]
     # [1+2(M/m)] psi'' + phi'' cos phi - phi_dot² sin phi = -2c/m(1−cos alpha) sin alpha
-
     B1 = - (2*c/m)*(1 - np.cos(alpha))*np.sin(alpha) - (g/R)*np.sin(phi)
     B2 = - (2*c/m)*(1 - np.cos(alpha))*np.sin(alpha) + (phi_dot**2)*np.sin(phi)
 
@@ -62,40 +60,34 @@ Y = odeint(odesys, y0, t, args=(M, m, c, g, R))
 
 phi = Y[:, 0]
 psi = Y[:, 1]
+X = X0 + R * Y[:, 1]
 phi_dot = Y[:, 2]
 psi_dot = Y[:, 3]
 
-# Чтобы найти ddphi и ddpsi на каждом шаге, снова вызовем odesys
 ddphi = np.zeros_like(phi)
 ddpsi = np.zeros_like(phi)
 for i in range(len(t)):
-    dydt = odesys(Y[i,:], t[i], M, m, c, g, R)
+    dydt = odesys(Y[i, :], t[i], M, m, c, g, R)
     ddphi[i] = dydt[2]
     ddpsi[i] = dydt[3]
 
 # Теперь вычисляем силу N
-# N = m[gcos phi + R( phi'^2- psi''sin phi )] + 2 R c (1−cos alpha) cos alpha
 alpha = (phi + psi)/2.0
-N = (m*(g*np.cos(phi) + R*(phi_dot**2 - ddpsi*np.sin(phi))) + 
+N = (m*(g*np.cos(phi) + R*(phi_dot**2 - ddpsi*np.sin(phi))) +
      2*R*c*(1 - np.cos(alpha))*np.cos(alpha))
 
-# Координаты центра колеса
-X_O = v * t
 Y_O = R
+X_O = X
 
 # Координаты точки A
 X_A = X_O + R * np.sin(psi)
 Y_A = Y_O - R * np.cos(psi)
 
-# Положение шарика
 center_radius = R - ball_radius
 X_B = X_O + center_radius * np.sin(phi)
 Y_B = Y_O - center_radius * np.cos(phi)
 
-# Параметры пружины
 spring_segments = 20
-
-# Координаты внутренней трубки
 inner_tube_radius = R - ball_radius*2
 X_Tube = inner_tube_radius * np.cos(np.linspace(0, 2*np.pi, 100))
 Y_Tube = inner_tube_radius * np.sin(np.linspace(0, 2*np.pi, 100))
@@ -126,7 +118,6 @@ ax.set_xlabel('Горизонтальная позиция (м)')
 ax.set_ylabel('Вертикальная позиция (м)')
 ax.set_title('Анимация катящегося колеса с шариком и пружиной')
 
-# Горизонтальная направляющая
 ax.plot([X_O.min() - R - 1, X_O.max() + R + 1], [0, 0], 'k-', linewidth=2)
 
 wheel_outline = 100
@@ -135,7 +126,7 @@ X_Wheel = R*np.cos(psi_circle)
 Y_Wheel = R*np.sin(psi_circle)
 wheel, = ax.plot([], [], 'b-', linewidth=2)
 tube, = ax.plot([], [], 'gray', linestyle='--', linewidth=1)
-spring, = ax.plot([], [], 'r-', linewidth=2)
+spring_line, = ax.plot([], [], 'r-', linewidth=2)
 
 ball = plt.Circle((X_B[0], Y_B[0]), ball_radius, color='g')
 ax.add_patch(ball)
@@ -147,11 +138,11 @@ radius_vector_B, = ax.plot([], [], 'b--', linewidth=1)
 def init():
     wheel.set_data([], [])
     tube.set_data([], [])
-    spring.set_data([], [])
+    spring_line.set_data([], [])
     ball.center = (X_B[0], Y_B[0])
     radius_vector_A.set_data([], [])
     radius_vector_B.set_data([], [])
-    return wheel, tube, spring, ball, radius_vector_A, radius_vector_B
+    return wheel, tube, spring_line, ball, radius_vector_A, radius_vector_B
 
 
 def anima(i):
@@ -164,39 +155,32 @@ def anima(i):
     tube.set_data(current_X_Tube, current_Y_Tube)
 
     X_spring_, Y_spring_ = create_spring_segments(X_A[i], Y_A[i], X_B[i], Y_B[i], spring_segments)
-    spring.set_data(X_spring_, Y_spring_)
+    spring_line.set_data(X_spring_, Y_spring_)
 
     ball.center = (X_B[i], Y_B[i])
 
     radius_vector_A.set_data([X_O[i], X_A[i]], [Y_O, Y_A[i]])
     radius_vector_B.set_data([X_O[i], X_B[i]], [Y_O, Y_B[i]])
 
-    return wheel, tube, spring, ball, radius_vector_A, radius_vector_B
+    return wheel, tube, spring_line, ball, radius_vector_A, radius_vector_B
 
 
-anim = FuncAnimation(fig, anima, init_func=init,
-                     frames=Steps, interval=40, blit=True)
+anim = FuncAnimation(fig, anima, init_func=init, frames=Steps, interval=40, blit=True)
 
-plt.show()
-
-# Построение трех графиков: x(t), phi(t), N(t)
+# Построение x(t), phi(t), N(t)
 fig2, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 10))
-
-# x(t) = X_O(t)
 ax1.plot(t, X_O, label='x(t)')
 ax1.set_ylabel('x (м)')
 ax1.set_title('x(t)')
 ax1.grid(True)
 ax1.legend()
 
-# phi(t)
 ax2.plot(t, phi, label='phi(t)', color='r')
 ax2.set_ylabel('phi (рад)')
 ax2.set_title('phi(t)')
 ax2.grid(True)
 ax2.legend()
 
-# N(t)
 ax3.plot(t, N, label='N(t)', color='g')
 ax3.set_ylabel('N (H)')
 ax3.set_title('N(t)')
