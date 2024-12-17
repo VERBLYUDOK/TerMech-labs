@@ -5,12 +5,12 @@ from scipy.integrate import odeint
 
 # --- Параметры системы ---
 R = 2.0    # Радиус колеса (м)
-c = 40.0   # Жесткость пружины (Н/м)
+c = 200.0   # Жесткость пружины (Н/м)
 m = 2.0    # Масса шарика (кг)
-M = 1.0    # Масса колеса
+M = 5.0    # Масса колеса
 g = 9.81   # Ускорение свободного падения (м/с^2)
 v = 1.0    # Линейная скорость центра колеса (м/с)
-phi0 = np.pi / 3   # Начальное отклонение угла фи (рад)
+phi0 = 0.2   # Начальное отклонение угла фи (рад)
 psi0 = 0.0         # Начальный угол пси (рад)
 phi_dot0 = 0.0      # Начальная угловая скорость фи (рад/с)
 psi_dot0 = 0.0      # Начальная угловая скорость пси (рад/с)
@@ -23,7 +23,6 @@ t = np.linspace(0, t_fin, Steps)
 dt = t[1]-t[0]
 
 
-# Функция правых частей уравнений Лагранжа
 def odesys(y, t, M, m, c, g, R):
     # y = [phi, psi, phi_dot, psi_dot]
     phi = y[0]
@@ -176,7 +175,7 @@ def anima(i):
 
 
 anim = FuncAnimation(fig, anima, init_func=init,
-                     frames=Steps, interval=40, blit=True, repeat=False)
+                     frames=Steps, interval=40, blit=True)
 
 plt.show()
 

@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
+
 def Rot2D(X, Y, Alpha):
     RX = X*np.cos(Alpha) - Y*np.sin(Alpha)
     RY = X*np.sin(Alpha) + Y*np.cos(Alpha)
@@ -54,27 +55,28 @@ ax1.set(xlim=[-3, 3], ylim=[-2, 4])
 # Построение траектории
 ax1.plot(X, Y, label='Траектория')
 
-# Точка на траектории (инициализируем без данных)
+# Точка на траектории
 P, = ax1.plot([], [], 'ko', label='Точка')
 
 # Базовые координаты для стрелочек
 ArrowX = np.array([-0.2, 0, -0.2])
 ArrowY = np.array([0.1, 0, -0.1])
 
-# Линия и стрелка для вектора скорости (инициализируем без данных)
+# Линия и стрелка для вектора скорости
 VLine, = ax1.plot([], [], 'r', label='Вектор скорости')
 VArrow, = ax1.plot([], [], 'r')
 
-# Линия и стрелка для вектора ускорения (инициализируем без данных)
+# Линия и стрелка для вектора ускорения
 ALine, = ax1.plot([], [], 'g', label='Вектор ускорения')
 AArrow, = ax1.plot([], [], 'g')
 
-# Линия и стрелка для радиус-вектора (инициализируем без данных)
+# Линия и стрелка для радиус-вектора
 RLine, = ax1.plot([], [], 'b', label='Радиус-вектор')
 RArrow, = ax1.plot([], [], 'b')
 
 # Добавление легенды
 ax1.legend(loc='upper left')
+
 
 # Функция инициализации
 def init():
@@ -86,6 +88,7 @@ def init():
     RLine.set_data([], [])
     RArrow.set_data([], [])
     return P, VLine, VArrow, ALine, AArrow, RLine, RArrow
+
 
 # Функция анимации
 def anima(i):
@@ -108,7 +111,8 @@ def anima(i):
 
     return P, VLine, VArrow, ALine, AArrow, RLine, RArrow
 
-# Создание анимации с функцией инициализации
+
+# Создание анимации
 anim = FuncAnimation(fig, anima, frames=len(T), init_func=init, interval=20, blit=True)
 
 plt.show()

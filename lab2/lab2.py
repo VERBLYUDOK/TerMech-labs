@@ -154,6 +154,6 @@ def anima(i):
 
 # --- Создание анимации ---
 anim = FuncAnimation(fig, anima, init_func=init,
-                     frames=Steps, interval=40, blit=True, repeat=False)
+                     frames=Steps, interval=40, blit=True)
 
 plt.show()
